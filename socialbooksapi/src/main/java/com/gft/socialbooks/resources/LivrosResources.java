@@ -16,24 +16,26 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.gft.socialbooks.domain.Livro;
 import com.gft.socialbooks.repository.LivrosRepository;
+import com.gft.socialbooks.services.LivrosService;
+import com.gft.socialbooks.services.exceptions.LivroNaoEncontradoException;
 
 @RestController
 @RequestMapping("/livros")
 public class LivrosResources {
 
 	@Autowired
-	private LivrosRepository livrosRepository;
+	private LivrosService livrosService;
 
 	// Listar todos os livros
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<List<Livro>> Listar() {
-		return ResponseEntity.status(HttpStatus.OK).body(livrosRepository.findAll());
+	public ResponseEntity<List<Livro>> listar() {
+		return ResponseEntity.status(HttpStatus.OK).body(livrosService.listar());
 	}
 
 	// Criar um livro
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Void> salvar(@RequestBody Livro livro) {
-		livro = livrosRepository.save(livro);
+		livro = livrosService.salvar(livro);
 
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(livro.getId()).toUri();
 		return ResponseEntity.created(uri).build();
@@ -42,26 +44,23 @@ public class LivrosResources {
 	// Buscar um livro
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public ResponseEntity<?> buscar(@PathVariable("id") Long id) {
-		Livro livro = livrosRepository.findById(id).orElse(null);
 
-		if (livro == null) {
+		// Livro livro = null;
+		Livro livro = livrosService.buscar(id);
+
+		/* try {
+			livro = livrosService.buscar(id);
+		} catch (LivroNaoEncontradoException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		} */
+
 		return ResponseEntity.status(HttpStatus.OK).body(livro);
 	}
 
 	// Deletar um livro
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-	/* public String excluir(@PathVariable("id") Livro livro) {
-		this.livrosRepository.delete(livro);
-		return "Livro excluido com sucesso";
-	} */
-	public ResponseEntity<Void> excluir(@PathVariable("id") Long id) {
-		try {
-			livrosRepository.deleteById(id);
-		} catch (EmptyResultDataAccessException e) {
-			return ResponseEntity.notFound().build();
-		}
+	public ResponseEntity<Void> deletar(@PathVariable("id") Long id) {
+		livrosService.deletar(id);
 		return ResponseEntity.noContent().build();
 	}
 
@@ -69,7 +68,7 @@ public class LivrosResources {
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
 	public ResponseEntity<Void> atualizar(@RequestBody Livro livro, @PathVariable("id") Long id) {
 		livro.setId(id);
-		livrosRepository.save(livro);
+		livrosService.atualizar(livro);
 		return ResponseEntity.noContent().build();
 	}
 }
