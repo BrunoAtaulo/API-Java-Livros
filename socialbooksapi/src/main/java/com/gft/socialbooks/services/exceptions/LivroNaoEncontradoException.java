@@ -15,6 +15,4 @@ public class LivroNaoEncontradoException extends RuntimeException{
 		super(mensagem, causa);
 	}
 	
-	
-	
 }

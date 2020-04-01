@@ -3,8 +3,9 @@ package com.gft.socialbooks.resources;
 import java.net.URI;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,10 +15,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.gft.socialbooks.domain.Comentario;
 import com.gft.socialbooks.domain.Livro;
-import com.gft.socialbooks.repository.LivrosRepository;
 import com.gft.socialbooks.services.LivrosService;
-import com.gft.socialbooks.services.exceptions.LivroNaoEncontradoException;
 
 @RestController
 @RequestMapping("/livros")
@@ -34,7 +34,7 @@ public class LivrosResources {
 
 	// Criar um livro
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Void> salvar(@RequestBody Livro livro) {
+	public ResponseEntity<Void> salvar(@Valid @RequestBody Livro livro) {
 		livro = livrosService.salvar(livro);
 
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(livro.getId()).toUri();
@@ -45,14 +45,8 @@ public class LivrosResources {
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public ResponseEntity<?> buscar(@PathVariable("id") Long id) {
 
-		// Livro livro = null;
+		// Verifica se o livro existe
 		Livro livro = livrosService.buscar(id);
-
-		/* try {
-			livro = livrosService.buscar(id);
-		} catch (LivroNaoEncontradoException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		} */
 
 		return ResponseEntity.status(HttpStatus.OK).body(livro);
 	}
@@ -70,5 +64,24 @@ public class LivrosResources {
 		livro.setId(id);
 		livrosService.atualizar(livro);
 		return ResponseEntity.noContent().build();
+	}
+
+	// Adicoinar comentario
+	@RequestMapping(value = "/{id}/comentarios", method = RequestMethod.POST)
+	public ResponseEntity<Void> adicionarComentario(@PathVariable("id") Long livroId, @RequestBody Comentario comentario){
+		
+		livrosService.salvarComentario(livroId, comentario);
+
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().build().toUri();
+
+		return ResponseEntity.created(uri).build();
+	}
+
+	// Listar comentarios
+	@RequestMapping(value = "/{id}/comentarios", method = RequestMethod.GET)
+	public ResponseEntity<List<Comentario>> listarComentarios(@PathVariable("id") Long livroId){
+		List<Comentario> comentarios = livrosService.listarComentarios(livroId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(comentarios);
 	}
 }

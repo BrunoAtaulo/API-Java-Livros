@@ -1,6 +1,5 @@
 package com.gft.socialbooks.domain;
 
-
 import java.util.Date;
 import java.util.List;
 
@@ -8,44 +7,65 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Transient;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+// import javax.persistence.Transient;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
 public class Livro {
-	
+
 	@JsonInclude(Include.NON_NULL)
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
-	private String nome;
-	
-	@JsonInclude(Include.NON_NULL)
-	private Date publicacao;
-	
-	@JsonInclude(Include.NON_NULL)
-	private String editora;
-	
-	@JsonInclude(Include.NON_NULL)
-	private String resumo;
-	
-	@JsonInclude(Include.NON_NULL)
-	@Transient
-	private List<Comentario> comentarios;
-	
-	@JsonInclude(Include.NON_NULL)
-	private String autor;
 
-	
-	public Livro(){}
-	public Livro(String nome){
+	@NotEmpty(message = "O campo nome não pode ser vazio.")
+	private String nome;
+
+	@JsonInclude(Include.NON_NULL)
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	@NotNull(message = "O campo publicação é de preenchimento obrigatório.")
+	private Date publicacao;
+
+	@JsonInclude(Include.NON_NULL)
+	@NotNull(message = "O campo editora é de preenchimento obrigatório.")
+	private String editora;
+
+	@JsonInclude(Include.NON_NULL)
+	@NotEmpty(message = "O campo resumo deve ser preenchido.")
+	@Size(max = 1500, message = "O resumo não pode ter mais que 1500 caracteres.")
+	private String resumo;
+
+	@JsonInclude(Include.NON_NULL)
+	/*
+	 * @Transient Aplicada a atributos de classe e quando aplicada indica que o
+	 * atributo não será serializado, no processo de serialização.
+	 */
+	@OneToMany(mappedBy = "livro")
+	private List<Comentario> comentarios;
+
+	@ManyToOne
+	@JoinColumn(name = "AUTOR_ID")
+	@JsonInclude(Include.NON_NULL)
+	private Autor autor;
+
+	// Construtores
+	public Livro() {
+	}
+
+	public Livro(String nome) {
 		this.nome = nome;
 	}
 
-
+	// Getters and Setters
 	public Long getId() {
 		return id;
 	}
@@ -94,11 +114,11 @@ public class Livro {
 		this.comentarios = comentarios;
 	}
 
-	public String getAutor() {
+	public Autor getAutor() {
 		return autor;
 	}
 
-	public void setAutor(String autor) {
+	public void setAutor(Autor autor) {
 		this.autor = autor;
 	}
 
